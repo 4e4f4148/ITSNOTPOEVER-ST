@@ -15,6 +15,8 @@ console.log(COOKIE);
 console.log(WEBDRIVERMODE);
 var driver;
 
+if(WEBDRIVERMODE == true){
+
 if (BROWSER === "firefox") driver = new Builder().forBrowser("firefox").build();
 else {
   var service = new edge.ServiceBuilder().setPort(55555).build();
@@ -22,11 +24,13 @@ else {
   driver = edge.Driver.createSession(options, service);
 }
 
-await driver.get("https://poe.com");
+  await driver.get("https://poe.com");
 await driver.manage().addCookie({ name: "p-b", value: COOKIE });
 await driver.get("https://poe.com/chatgpt");
+}
 
 async function test(req, res) {
+    if(req.body.reverse_proxy) return res.send(true)
     let lastmsg = ''
     let src, newsrc = ''
     while(true){
@@ -56,44 +60,43 @@ async function test(req, res) {
     res.send(lastmsg)
 }
 
-async function convertPOEtoOAI(messages, maxtoken) {
+async function convertPOEtoOAI(messages) {
   console.log(`before split = ${messages}`);
   let messageout = messages;
   if (messages.includes(":")) messageout = messages.split(":").splice(1);
   console.log(`after split = ${messageout}`);
   let newresponse = {
-    id: "999999",
-    object: "chat.completion",
-    created: Date.now(),
-    model: "gpt-3.5-turbo-0613",
-    choices: [
+    "id": "chatcmpl-7ep1aerr8frmSjQSfrNnv69uVY0xM",
+    "object": "chat.completion",
+    "created": Date.now(),
+    "model": "gpt-3.5-turbo-0613",
+    "choices": [
       {
-        index: 0,
-        message: {
-          role: "assistant",
-          content: messageout,
+        "index": 0,
+        "message": {
+          "role": "assistant",
+          "content": messageout
         },
-        finish_reason: "length",
-      },
+        "finish_reason": "stop"
+      }
     ],
-    usage: {
-      prompt_tokens: 0,
-      completion_tokens: maxtoken,
-      total_tokens: maxtoken,
-    },
-  };
+    "usage": {
+      "prompt_tokens": 724,
+      "completion_tokens": 75,
+      "total_tokens": 799
+    }
+  }
   console.log(`messageout : ${messageout}`);
   console.log(`newres : ${newresponse}`);
   return newresponse;
 }
 
-async function convertOAItoPOE(messages) {
-  console.log("oaitopoe");
+async function convertOAIToPoe(messages) {
+  console.log("oai to poe");
   let charname = "";
   let newprompt = "";
-  let systemsplit = messages[0].content.split(".");
-  const actions = driver.actions
-
+  let systemsplit = messages[0].content.split("'s");
+  
   let textfield = driver
   .findElement(
     By.xpath(
@@ -102,27 +105,25 @@ async function convertOAItoPOE(messages) {
   )
   console.log("searching for charname");
   for (let sentence in systemsplit) {
-    if (systemsplit[sentence].includes("{{char}}'s name: ")) {
+    if (systemsplit[sentence].includes("Write ")) {
       charname = systemsplit[sentence].substring(
-        17,
+        6,
         systemsplit[sentence].length
       );
       break;
     }
   }
+  let systemmsgs = ''
   console.log(`charname = ${charname}`);
   for (let i in messages) {
+    console.log(messages[i])
     if (messages[i].role === "system") {
-      let contentsplit = messages[i].content.split('\n')
-      for(let j in contentsplit){
-        await textfield.sendKeys(contentsplit[j]);
-        await textfield.sendKeys(Key.chord(Key.SHIFT, Key.ENTER));
-      }
-      await textfield.sendKeys("[Unless otherwise stated by {{user}}, your next response shall only be written from the point of view of {{char}} without needed to state who is a speaker. Do not seek approval of your writing style at the end of the response. and Never reply with a full stop.")
-      await textfield.sendKeys(Key.chord(Key.SHIFT, Key.ENTER));
-      await textfield.sendKeys(`If you accept the requirements, please confirm this by replying with "Understood.", and nothing more. Upon receiving your accurate confirmation message, I will specify the context of the scene and {{char}}'s characteristics, background, and personality in the next message.`);
-      await textfield.sendKeys(Key.ENTER)
-      await driver.sleep(3000)
+      if(messages[i].name === 'example_user')
+      systemmsgs += `Your example message : ${messages[i].content} \n`
+      else if(messages[i].name === 'example_assistant')
+      systemmsgs += `${charname}'s example message : ${messages[i].content} \n`
+      else
+      systemmsgs += `${messages[i].content}\n`
     }
     if (messages[i].role === "assistant") {
       newprompt += `${charname}: `;
@@ -135,7 +136,19 @@ async function convertOAItoPOE(messages) {
       newprompt += "\n";
     }
   }
+  console.log('message dump done')
+  let contentsplit = systemmsgs.split('\n')
+  for(let j in contentsplit){
+    await textfield.sendKeys(contentsplit[j]);
+    await textfield.sendKeys(Key.chord(Key.SHIFT, Key.ENTER));
+  }
+  await textfield.sendKeys("[Unless otherwise stated by {{user}}, your next response shall only be written from the point of view of {{char}} without needed to state who is a speaker. Do not seek approval of your writing style at the end of the response. and Never reply with a full stop.")
+  await textfield.sendKeys(Key.chord(Key.SHIFT, Key.ENTER));
+  await textfield.sendKeys(`If you accept the requirements, please confirm this by replying with "Understood.", and nothing more. Upon receiving your accurate confirmation message, I will specify the context of the scene and {{char}}'s characteristics, background, and personality in the next message.`);
+  await textfield.sendKeys(Key.ENTER)
   await driver.sleep(JBWAITING * 1000)
+  console.log('send system message done')
+
   let splitedprompt = newprompt.split("\n")
   for(let j in splitedprompt){
     await textfield.sendKeys(splitedprompt[j])
@@ -150,11 +163,11 @@ async function convertOAItoPOE(messages) {
 
 async function sagedriverCompletion(req, res) {
   let maxtoken = req.body.max_tokens;
-  // console.log(req.body.messages)
+  console.log(req.body)
   driver
     .findElement(By.className("ChatMessageInputFooter_chatBreakButton__hqJ3v"))
     .click();
-  await convertOAItoPOE(req.body.messages);
+  await convertOAIToPoe(req.body.messages);
     let lastmsg = ''
     let src, newsrc = ''
     while(true){

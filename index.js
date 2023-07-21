@@ -48,6 +48,34 @@ app.get("/v2/driver/sage/", async function (req, res) {
   });
 });
 
+app.get("/v2/driver/sage/models", async function (req, res) {
+  console.log(req)
+  res.set("Content-Type", "application/json");
+  return res.status(200).send({
+    "data": [
+      {"id": 3},
+      {"id": 1},
+      {"id": 5},
+      {"id": 2},
+      {"id": 4}
+    ]
+  });
+});
+
+app.get("/api/completions", async function (req, res) {
+  console.log(req)
+  res.set("Content-Type", "application/json");
+  return res.status(200).send({
+    "data": [
+      {"id": 3},
+      {"id": 1},
+      {"id": 5},
+      {"id": 2},
+      {"id": 4}
+    ]
+  });
+});
+
 console.log(`Sage driver: http://localhost:${SERVER_PORT}/v2/driver/sage`);
 
 console.log(`Proxy is running on PORT ${SERVER_PORT} ...`);
