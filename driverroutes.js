@@ -9,7 +9,7 @@ import {
   COOKIE,
   BROWSER,
 } from "./config.js";
-
+let charname = "";
 // configure browser options ...
 console.log(COOKIE);
 console.log(WEBDRIVERMODE);
@@ -75,7 +75,7 @@ async function convertPOEtoOAI(messages) {
         "index": 0,
         "message": {
           "role": "assistant",
-          "content": messageout
+          "content": `${charname}: ${messageout}`
         },
         "finish_reason": "stop"
       }
@@ -93,7 +93,7 @@ async function convertPOEtoOAI(messages) {
 
 async function convertOAIToPoe(messages) {
   console.log("oai to poe");
-  let charname = "";
+
   let newprompt = "";
   let systemsplit = messages[0].content.split("'s");
   
