@@ -52,14 +52,59 @@ app.get("/v2/driver/sage/models", async function (req, res) {
   console.log(req)
   res.set("Content-Type", "application/json");
   return res.status(200).send({
+    "object": "list",
     "data": [
-      {"id": 3},
-      {"id": 1},
-      {"id": 5},
-      {"id": 2},
-      {"id": 4}
+        {
+            "id": "babbage",
+            "object": "model",
+            "created": 1649358449,
+            "owned_by": "openai",
+            "permission": [
+                {
+                    "id": "modelperm-49FUp5v084tBB49tC4z8LPH5",
+                    "object": "model_permission",
+                    "created": 1669085501,
+                    "allow_create_engine": false,
+                    "allow_sampling": true,
+                    "allow_logprobs": true,
+                    "allow_search_indices": false,
+                    "allow_view": true,
+                    "allow_fine_tuning": false,
+                    "organization": "*",
+                    "group": null,
+                    "is_blocking": false
+                }
+            ],
+            "root": "babbage",
+            "parent": null
+        },
+        {
+            "id": "text-davinci-003",
+            "object": "model",
+            "created": 1669599635,
+            "owned_by": "openai-internal",
+            "permission": [
+                {
+                    "id": "modelperm-jepinXYt59ncUQrjQEIUEDyC",
+                    "object": "model_permission",
+                    "created": 1688551385,
+                    "allow_create_engine": false,
+                    "allow_sampling": true,
+                    "allow_logprobs": true,
+                    "allow_search_indices": false,
+                    "allow_view": true,
+                    "allow_fine_tuning": false,
+                    "organization": "*",
+                    "group": null,
+                    "is_blocking": false
+                }
+            ],
+            "root": "text-davinci-003",
+            "parent": null
+        }
     ]
-  });
+});
+
 });
 
 app.get("/api/completions", async function (req, res) {
