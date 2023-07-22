@@ -18,15 +18,16 @@ var driver;
 if(WEBDRIVERMODE == true){
 
 if (BROWSER === "firefox") driver = new Builder().forBrowser("firefox").build();
+else if (BROWSER === 'chrome') driver = new Builder().forBrowser("chrome").build();
 else {
   var service = new edge.ServiceBuilder().setPort(55555).build();
   var options = new edge.Options();
   driver = edge.Driver.createSession(options, service);
 }
 
-  await driver.get("https://poe.com");
-await driver.manage().addCookie({ name: "p-b", value: COOKIE });
-await driver.get("https://poe.com/chatgpt");
+//   await driver.get("https://poe.com");
+// await driver.manage().addCookie({ name: "p-b", value: COOKIE });
+// await driver.get("https://poe.com/chatgpt");
 }
 
 async function test(req, res) {
