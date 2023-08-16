@@ -101,7 +101,7 @@ async function convertOAIToPoe(messages) {
   let textfield = driver
   .findElement(
     By.xpath(
-      `//*[@id="__next"]/div[1]/div/section/div[2]/div/div/footer/div/div/div[1]/textarea`
+      `//*[contains(@class, "ChatMessageInputContainer")]/div/textarea`
     )
   )
   console.log("searching for charname");
